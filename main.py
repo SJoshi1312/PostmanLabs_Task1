@@ -56,3 +56,20 @@ for i in range(0, len(x_test), batch_size):
 accuracy = correct / len(x_test)
 
 print(f"Test accuracy: {accuracy:.4f}")
+
+confusion_matrix = np.zeros((10, 10), dtype=int)
+
+for i in range(0, len(x_test), batch_size):
+
+    x_batch = x_test[i:i + batch_size].T
+    y_batch = y_test[i:i + batch_size]
+
+    predictions = nn.forward(x_batch)
+    predicted_labels = np.argmax(predictions, axis=0)
+
+    for actual, predicted in zip(y_batch, predicted_labels):
+        confusion_matrix[actual, predicted] += 1
+
+print("\nConfusion Matrix:")
+print(confusion_matrix)
+print("In above matrix, rows correspond to Actual values, and columns correspond to Predicted values. As seen, majority of the numbers fall on the diagonal, i.e., actual = predicted. ")
