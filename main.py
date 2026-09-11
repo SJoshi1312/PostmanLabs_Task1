@@ -1,45 +1,58 @@
+import numpy as np
+
 from data.MNIST import x_train, y_train, x_test, y_test
 from src.network import NeuralNetwork
 from src.loss import cross_entropy
-import numpy as np
+
 
 nn = NeuralNetwork()
 
-learning_rate = 0.001
-print("Initial W3 norm:", np.linalg.norm(nn.W3))
-for i in range(1000):
+batch_size = 32
+epochs = 5
 
-    x = x_train[i].reshape(784, 1)
-    label = y_train[i]
+for epoch in range(epochs):
 
-    # Forward pass
-    output = nn.forward(x)
+    # Shuffle the training data
+    indices = np.random.permutation(len(x_train))
 
-    # Loss
-    loss = cross_entropy(label, output)
+    x_train_shuffled = x_train[indices]
+    y_train_shuffled = y_train[indices]
 
-    # Backpropagation
-    gradients = nn.backward(label)
+    total_loss = 0
 
-    # Update weights
-    nn.update_parameters(gradients, learning_rate)
+    for i in range(0, len(x_train), batch_size):
 
-    # Debug first 10 predictions
+        x_batch = x_train_shuffled[i:i + batch_size]
+        y_batch = y_train_shuffled[i:i + batch_size]
 
+        x_batch = x_batch.T
 
-    if i < 10:
-        print("Image:", i, "Label:", label, "Prediction:", np.argmax(output))
+        predictions = nn.forward(x_batch)
 
-    if i % 100 == 0:
-        print(f"Image {i}, Loss: {loss:.4f}")
+        loss = cross_entropy(y_batch, predictions)
+        total_loss += loss
 
-    gradients = nn.backward(label)
+        gradients = nn.backward(y_batch)
 
-    if i == 0:
-        print("dW3 norm:", np.linalg.norm(gradients[4]))
-        print("db3:", gradients[5].flatten())
+        nn.update_parameters(gradients, learning_rate=0.001)
 
-    nn.update_parameters(gradients, learning_rate)
-print("Final W3 norm:", np.linalg.norm(nn.W3))
+    average_loss = total_loss / (len(x_train) // batch_size)
 
+    print(f"Epoch {epoch + 1}, Loss: {average_loss:.4f}")
 
+    correct = 0
+
+for i in range(0, len(x_test), batch_size):
+
+    x_batch = x_test[i:i + batch_size].T
+    y_batch = y_test[i:i + batch_size]
+
+    predictions = nn.forward(x_batch)
+
+    predicted_labels = np.argmax(predictions, axis=0)
+
+    correct += np.sum(predicted_labels == y_batch)
+
+accuracy = correct / len(x_test)
+
+print(f"Test accuracy: {accuracy:.4f}")

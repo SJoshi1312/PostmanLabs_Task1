@@ -5,8 +5,8 @@ def relu(x):
     return np.maximum(0, x)
 
 def softmax(x):
-    exp = np.exp(x - np.max(x))
-    return exp / np.sum(exp)
+    exp = np.exp(x - np.max(x, axis=0, keepdims=True))
+    return exp / np.sum(exp, axis=0, keepdims=True)
 
 class NeuralNetwork:
 
@@ -20,6 +20,7 @@ class NeuralNetwork:
 
         self.W3 = np.random.randn(10, 64) * np.sqrt(2 / 64)
         self.b3 = np.zeros((10, 1))
+
     def forward(self, x):
 
         z1 = self.W1 @ x + self.b1
@@ -41,9 +42,12 @@ class NeuralNetwork:
 
         self.z3 = z3
         self.a3 = a3
+
         return a3
-    def backward(self, label):
-        delta3 = output_delta(self.a3, label)
+
+    def backward(self, labels):
+
+        delta3 = output_delta(self.a3, labels)
 
         dW3, db3, da2 = backprop_layer(
             self.W3,
@@ -68,6 +72,8 @@ class NeuralNetwork:
             self.x,
             delta1
         )
+
+        return dW1, db1, dW2, db2, dW3, db3
 
         return dW1, db1, dW2, db2, dW3, db3
     def update_parameters(self, gradients, learning_rate=0.01):
